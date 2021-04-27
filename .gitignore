@@ -3,6 +3,5 @@
 /h2test.mv.db
 /sqlitetest.db
 /.settings/
-/.idea/
-norm.iml
-test.sqlite3
+.idea
+/.DS_Store

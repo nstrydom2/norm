@@ -45,11 +45,11 @@ Database db = new Database();
 
 Person joe = new Person();
 joe.firstName = "Joe";
-joe.lastName = "Biden";
+joe.lastName = "Sixpack";
 
 db.insert(joe);
 
-List<Person> people = db.where("lastname=?", "Biden").orderBy("lastName").results(Person.class);
+List<Person> people = db.where("lastname=?", "Sixpack").orderBy("lastName").results(Person.class);
 ```
 
 The `Person` class:
@@ -107,7 +107,7 @@ Note that you must specify full sql, or at a minimum a table name, because the s
 A single column result set can come back in the form of a list of primitives, or even as a single primitive. 
 
 ```Java
-Long count = db.sql("select count(*) from people").results(Long.class);
+Long count = db.sql("select count(*) from people").first(Long.class);
 ```
 
 It's sometimes really useful to get a result in the form of a `List<String>`.
@@ -172,32 +172,23 @@ Transaction is a pretty simple class, so if it doesn't do what you need,  just s
 
 ### Custom Serialization
 
-Sometimes it's hard to map a property in your POJO to a database field. For example, suppose your POJO property is List<String>, but you want your database field to be a plain, comma-separated string. You need a way to tell the system how to convert your list to the proper format.
+> The older @DbSerializable and @DbSerializer annotations are now deprecated.
+> Use @Convert and an AttributeConverter class instead.
 
-Do it like this:
+Norm now supports JPA serialization. We'll add a bit more documentation here later, but for
+now you can learn all about it here:
 
-```Java
-class MyPojo {
-	@DbSerializer(MySerializer.class)
-	public List<String> myList;
-}
+[https://thoughts-on-java.org/jpa-21-how-to-implement-type-converter/](https://thoughts-on-java.org/jpa-21-how-to-implement-type-converter/)
 
-class MySerializer implements DbSerializable {
+and here:
 
-	@Override
-	public String serialize(Object in) {
-		return in.toString();
-	}
+[https://www.baeldung.com/jpa-attribute-converters](https://www.baeldung.com/jpa-attribute-converters)
 
-	@Override
-	public Object deserialize(String in, Class<?> targetClass) {
-		Object out = // convert the string back to a list here
-		return out;
-	}
-}
+In short, @Convert give you a way of converting a particular column datatype in your database
+to a particular datatype in your POJO. So, you can store a list of integers in your database
+as String, and in your POJO as List&lt;Integer>.
 
-```
-You can sometimes achieve the same purpose by using appropriate getters and setters on your POJO. Mark the ones that Norm should ignore with @Transient.
+Note that you can sometimes achieve the same purpose by using appropriate getters and setters on your POJO. Mark the ones that Norm should ignore with @Transient.
 
 
 ### Pluggable SQL Flavors
@@ -228,7 +219,7 @@ Here's the Maven dependency:
 <dependency>
     <groupId>com.dieselpoint</groupId>
     <artifactId>norm</artifactId>
-    <version>0.8.3</version>
+    <version>0.8.5</version>
 </dependency>
 ```  
 
@@ -253,8 +244,6 @@ Internally, Norm uses the [Hikari](http://brettwooldridge.github.io/HikariCP/) c
 
 If you don't want to use system properties, or your DataSource needs some custom startup parameters, just subclass the [Database](https://github.com/dieselpoint/norm/blob/master/src/main/java/com/dieselpoint/norm/Database.java) class and override the .getDataSource() method. You can supply any DataSource you like.
 
-In particular, you might want to override .getDataSource() to set the maximum number of connections that the connection pool opens. By default, it's set to 10. Tune it appropriately.
-
 ### Dependencies
 Norm needs javax.persistence, but that's just for annotations.
 
@@ -272,8 +261,7 @@ Finally, you'll need to include your JDBC driver as a dependency. Here's a sampl
 
 ****
 
-That's about it. Post any bugs or feature requests to the issue tracker. Post any support requests to Stack Overflow.
-
+That's about it. Post any bugs or feature requests to the issue tracker. 
 
 
 
